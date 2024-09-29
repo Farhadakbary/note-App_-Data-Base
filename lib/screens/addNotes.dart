@@ -71,7 +71,7 @@ class _AddNotePageState extends State<AddNotePage> {
                   children: [
                     TextField(
                       controller: _topicController,
-                      decoration: const InputDecoration(labelText: 'Topic'),
+                      decoration: const InputDecoration(labelText: 'Title'),
                       onChanged: (value) {
                         setState(() {
                           note.title = _topicController.text;

@@ -61,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen>
                 child:const Icon(
                   Icons.note_alt_rounded,
                   size: 100,
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
               ),
               const SizedBox(height: 20),

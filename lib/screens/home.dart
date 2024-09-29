@@ -1,11 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'addNotes.dart';
 import '../database/databaseHelper.dart';
-import 'loginpage.dart';
 import '../class/note.dart';
+import 'favorite.dart';
+import 'loginpage.dart';
 import 'package:sqflite/sqflite.dart';
 
 class Home extends StatefulWidget {
@@ -19,20 +19,32 @@ class _HomeState extends State<Home> {
   DatabaseHelper databaseHelper = DatabaseHelper();
   List<Note> noteList = [];
   List<Note> filteredNoteList = [];
+  List<int> favoriteNoteIds = []; // List to store favorite note IDs
   int? count;
-  bool isDarkMode = false;
-  double fontSize = 12.0;
   TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    saveFont();
     updateListView();
     loadPreferences();
     searchController.addListener(() {
       filterNotes(searchController.text);
     });
+  }
+
+  Future<void> loadPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      favoriteNoteIds =
+          prefs.getStringList('favorites')?.map(int.parse).toList() ?? [];
+    });
+  }
+
+  Future<void> saveFavorites() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+        'favorites', favoriteNoteIds.map((e) => e.toString()).toList());
   }
 
   @override
@@ -62,16 +74,31 @@ class _HomeState extends State<Home> {
           IconButton(
             onPressed: () => _deleteAll(context),
             icon: const Icon(Icons.delete_forever_rounded),
+            color: Colors.black,
           ),
           IconButton(
             icon: const Icon(Icons.settings),
+            color: Colors.black,
             onPressed: () {
               Navigator.pushNamed(context, '/settings');
             },
           ),
           IconButton(
-            onPressed: () => _logout(context),
-            icon: const Icon(Icons.logout_outlined),
+              onPressed: () => _logout(context),
+              icon: const Icon(Icons.logout_outlined),
+              color: Colors.black),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Favorite(
+                      noteList: noteList, favoriteNoteIds: favoriteNoteIds),
+                ),
+              );
+            },
+            icon: const Icon(Icons.favorite),
+            color: Colors.black,
           ),
         ],
         bottom: PreferredSize(
@@ -106,40 +133,67 @@ class _HomeState extends State<Home> {
         ),
         child: filteredNoteList.isEmpty
             ? const Center(
-            child: Text(
-              'No Notes Available',
-              style: TextStyle(fontSize: 25),
-            ))
+                child: Text(
+                  'No Notes Available',
+                  style: TextStyle(fontSize: 25),
+                ),
+              )
             : ListView.builder(
-            itemCount: filteredNoteList.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: GestureDetector(
-                  onTap: () {
-                    navigateToAddNote(this.filteredNoteList[index], 'Edit Detail');
-                  },
-                  child: ListTile(
-                    title: Text(filteredNoteList[index].title),
-                    subtitle: Text(filteredNoteList[index].date),
-                    trailing: IconButton(
-                      onPressed: () {
-                        _delete(context, filteredNoteList[index]);
+                itemCount: filteredNoteList.length,
+                itemBuilder: (context, index) {
+                  final note = filteredNoteList[index];
+                  final isFavorite = favoriteNoteIds.contains(note.id);
+
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: GestureDetector(
+                      onTap: () {
+                        navigateToAddNote(filteredNoteList[index], 'Edit Note');
                       },
-                      icon: const Icon(
-                        Icons.delete,
-                        color: CupertinoColors.destructiveRed,
+                      child: ListTile(
+                        title: Text(
+                          filteredNoteList[index].title,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(filteredNoteList[index].date),
+                        leading: IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : null,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              if (isFavorite) {
+                                favoriteNoteIds.remove(note.id);
+                              } else {
+                                favoriteNoteIds.add(note.id!);
+                              }
+                              saveFavorites(); // Save updated favorites list
+                            });
+                          },
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Colors.black,
+                          ),
+                          onPressed: () {
+                            _delete(context, filteredNoteList[index]);
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              );
-            }),
+                  );
+                },
+              ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.grey[400],
+        elevation: 4,
+        splashColor: Colors.black,
+clipBehavior: Clip.antiAliasWithSaveLayer,
+        backgroundColor: Colors.grey[200],
         onPressed: () {
-          navigateToAddNote(Note('', ''), 'Add Note');
+          navigateToAddNote(Note.empty(), 'Add Note');
         },
         child: const Icon(
           Icons.add,
@@ -147,53 +201,6 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
-  }
-
-  Future<void> loadPreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      isDarkMode = prefs.getBool('darkMode') ?? false;
-    });
-  }
-
-  Future<void> _logout(BuildContext context) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('log_in', false);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
-  }
-
-  Future<void> saveFont() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      fontSize = prefs.getDouble('fontSize') ?? 12.0;
-    });
-  }
-
-  void _delete(BuildContext context, Note note) async {
-    var result = await databaseHelper.deleteNote(note.id!);
-    if (result != 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-            'Note deleted',
-            style: TextStyle(color: Colors.white),
-          )));
-      updateListView();
-    }
-  }
-
-  void _deleteAll(BuildContext context) async {
-    var result = await databaseHelper.trancateDatabase();
-    if (result != 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-            'Note  deleted',
-            style: TextStyle(color: Colors.white),
-          )));
-      updateListView();
-    }
   }
 
   void updateListView() {
@@ -211,9 +218,25 @@ class _HomeState extends State<Home> {
   }
 
   void navigateToAddNote(Note note, String title) async {
-    bool result = await Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => AddNotePage(note, title)));
+    bool result = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => AddNotePage(note, title)),
+    );
     if (result == true) {
+      updateListView();
+    }
+  }
+
+  void _delete(BuildContext context, Note note) async {
+    var result = await databaseHelper.deleteNote(note.id!);
+    if (result != 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Note deleted',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
       updateListView();
     }
   }
@@ -225,9 +248,30 @@ class _HomeState extends State<Home> {
       } else {
         filteredNoteList = noteList
             .where((note) =>
-            note.title.toLowerCase().contains(query.toLowerCase()))
+                note.title.toLowerCase().contains(query.toLowerCase()))
             .toList();
       }
     });
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('log_in', false);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
+  }
+
+  void _deleteAll(BuildContext context) async {
+    var result = await databaseHelper.trancateDatabase();
+    if (result != 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+        'Note  deleted',
+        style: TextStyle(color: Colors.white),
+      )));
+      updateListView();
+    }
   }
 }
