@@ -11,21 +11,23 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
+
   late AnimationController controller;
+  late Animation<double> animation;
   @override
   void initState() {
     controller =
         AnimationController(vsync: this, duration: const Duration(seconds: 3));
+    animation = CurvedAnimation(parent: controller, curve: Curves.easeInOut);
     controller.forward();
     controller.repeat(reverse: true);
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 5), () {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const LoginPage()),
         (Route<dynamic> route) => false,
       );
-      //
     });
   }
 
@@ -39,6 +41,8 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: SweepGradient(
             colors: [
@@ -48,21 +52,34 @@ class _SplashScreenState extends State<SplashScreen>
             ],
           ),
         ),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Center(
-              child: AnimatedIcon(
-                icon: AnimatedIcons.search_ellipsis,
-                progress: controller,
-                size: 100,
-                color: Colors.black,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ScaleTransition(
+                scale: animation,
+                child:const Icon(
+                  Icons.note_alt_rounded,
+                  size: 100,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            const Text(
-              'version 1.0.1',
-              style: TextStyle(fontSize: 13),
-            )
-          ],
+              const SizedBox(height: 20),
+              const Text(
+                'Note App',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'version 1.0.1',
+                style: TextStyle(fontSize: 13, color: Colors.white),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -43,6 +43,7 @@ class _AddNotePageState extends State<AddNotePage> {
             Color(0xFF6A5ACD),
             Colors.white,
             Color(0xFF4169E1),
+
           ],
           ),
         ),

@@ -127,3 +127,10 @@ class _LoginPageState extends State<LoginPage> {
         ));
   }
 }
+//animation = CurvedAnimation(parent: controller, curve: Curves.easeInOut);
+// ScaleTransition(
+//               scale: animation,
+//               child: Icon(
+//                 Icons.note_alt_rounded,
+//                 size: 100,
+//                 color: Colors.white,
