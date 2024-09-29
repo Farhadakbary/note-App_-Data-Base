@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:noteapp2/noteapp_splashscreen.dart';
-import 'package:noteapp2/setting.dart';
-import 'package:noteapp2/sign_up.dart';
+import 'package:noteapp2/screens/noteapp_splashscreen.dart';
+import 'package:noteapp2/screens/setting.dart';
+import 'package:noteapp2/screens/sign_up.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'loginpage.dart';
+import 'screens/loginpage.dart';
 void main() {
   runApp(
     const MyApp(),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:noteapp2/home.dart';
+import 'package:noteapp2/screens/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpPage extends StatefulWidget {

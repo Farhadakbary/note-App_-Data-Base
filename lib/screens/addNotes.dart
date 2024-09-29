@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'databaseHelper.dart';
-import 'note.dart';
+import '../database/databaseHelper.dart';
+import '../class/note.dart';
 
 class AddNotePage extends StatefulWidget {
   final String appBarTitle;

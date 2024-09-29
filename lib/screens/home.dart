@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'addNotes.dart';
-import 'databaseHelper.dart';
+import '../database/databaseHelper.dart';
 import 'loginpage.dart';
-import 'note.dart';
+import '../class/note.dart';
 import 'package:sqflite/sqflite.dart';
 
 class Home extends StatefulWidget {

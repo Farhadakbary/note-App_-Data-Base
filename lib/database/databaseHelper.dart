@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'note.dart';
+import '../class/note.dart';
 import 'dart:async';
 
 class DatabaseHelper {
